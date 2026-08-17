@@ -14,8 +14,12 @@
         private let isAlarming: Bool
         private let content: Content
 
-        /// - Parameter isAlarming: Draws the title in red. For a card that only appears when
-        ///   something went wrong.
+        /// - Parameters:
+        ///   - title: Names what the card holds.
+        ///   - systemImage: An SF Symbol shown beside the title.
+        ///   - isAlarming: Draws the title in red. For a card that only appears when something
+        ///     went wrong.
+        ///   - content: The facts inside.
         public init(
             _ title: String,
             systemImage: String,

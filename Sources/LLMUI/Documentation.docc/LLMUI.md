@@ -61,6 +61,12 @@ system prompt and each step's token counts alongside the run's own events.
 
 ## Topics
 
+### The console
+
+- ``AgentConsole``
+- ``AgentConsoleView``
+- ``AgentConsoleID``
+
 ### Choosing a model
 
 - ``ModelPickerView``
@@ -68,6 +74,7 @@ system prompt and each step's token counts alongside the run's own events.
 
 ### Credentials
 
+- ``CredentialsView``
 - ``CredentialFieldView``
 - ``CredentialResolver``
 - ``CredentialProvider``
@@ -79,3 +86,27 @@ system prompt and each step's token counts alongside the run's own events.
 
 - ``AgentTraceView``
 - ``AgentTraceLog``
+
+### What it cost
+
+- ``UsageLedger``
+- ``UsageTurn``
+- ``UsageStep``
+- ``UsageTotals``
+- ``UsageView``
+- ``TokenBreakdown``
+- ``TokenBreakdownView``
+- ``TokenCategory``
+- ``CostDisplaySettings``
+- ``CostDisplayCurrency``
+- ``ExchangeRateService``
+
+### Building a debug screen
+
+- ``DebugCard``
+- ``DebugRow``
+- ``DebugMetric``
+- ``DebugEmptyHint``
+- ``CopyButton``
+- ``FilterChips``
+- ``WrappingRow``
