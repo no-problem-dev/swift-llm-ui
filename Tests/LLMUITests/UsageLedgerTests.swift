@@ -214,28 +214,3 @@ struct UsageLedgerTests {
         #expect(UsageTotals.zero.cacheHitRate == 0)
     }
 }
-
-/// 足し算で「報告されなかった」を「0 と報告された」に変えない。
-@Suite("Token usage arithmetic")
-struct TokenUsageArithmeticTests {
-
-    @Test("内訳は両方 nil のときだけ nil のまま")
-    func subsetsStayNilOnlyWhenNeitherSideReported() {
-        let reported = TokenUsage(inputTokens: 10, outputTokens: 10, reasoningTokens: 3)
-        let silent = TokenUsage(inputTokens: 10, outputTokens: 10)
-
-        #expect((silent + silent).reasoningTokens == nil)
-        #expect((reported + silent).reasoningTokens == 3)
-        #expect((reported + reported).reasoningTokens == 6)
-    }
-
-    @Test("合計は素直に足す")
-    func totalsAddUp() {
-        let sum = TokenUsage(inputTokens: 10, outputTokens: 20)
-            + TokenUsage(inputTokens: 5, outputTokens: 7)
-
-        #expect(sum.inputTokens == 15)
-        #expect(sum.outputTokens == 27)
-        #expect(sum.totalTokens == 42)
-    }
-}

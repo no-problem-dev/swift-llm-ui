@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Removed
+
+- **BREAKING** — `TokenBreakdown` and `TokenCategory` moved to `LLMCore` (swift-llm-client 5.2.0).
+  They are pure arithmetic over a `TokenUsage` and a `Pricing`, wanted by anything that totals a
+  bill — a server as much as a settings screen — and keeping them here left that behind a SwiftUI
+  dependency. Import `LLMClient` to get them; the API is unchanged, and `TokenCategory.color` still
+  lives here because a colour is a display decision.
+- The `TokenUsage` `+` operator and `zero` this package added are gone: `LLMCore` already has
+  `adding(_:)` and `zero`, and its version is the more correct one — a total carries no cache tier,
+  because each step can be billed at a different lifetime.
+
+### Changed
+
+- Requires swift-llm-client 5.2.0.
+
 ## [0.2.0] - 2026-08-17
 
 ### Fixed

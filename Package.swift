@@ -11,7 +11,7 @@ let package = Package(
         .library(name: "LLMUI", targets: ["LLMUI"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/no-problem-dev/swift-llm-client.git", from: "5.1.0"),
+        .package(url: "https://github.com/no-problem-dev/swift-llm-client.git", from: "5.2.0"),
         .package(url: "https://github.com/no-problem-dev/swift-llm-cloud.git", from: "6.0.0"),
         .package(url: "https://github.com/no-problem-dev/swift-agent-runtime.git", from: "0.20.1"),
         .package(url: "https://github.com/swiftlang/swift-docc-plugin", from: "1.4.0"),

@@ -21,7 +21,7 @@ in packages that build and run on Linux. Keeping SwiftUI in a package of its own
 them stay that way — a server can link the model catalog and the agent loop without pulling a UI
 framework behind it.
 
-So `ModelCatalog` and `ModelPreset` are not defined here. A server needs them as much as a
+So `ModelCatalog`, `ModelPreset` and `TokenBreakdown` are not defined here. A server needs them as much as a
 settings screen does, and they belong to `LLMClient`. What this package adds is wording and
 layout: `ModelDescriptor.contextWindowText`, a row, a badge, a filter.
 
@@ -94,9 +94,7 @@ system prompt and each step's token counts alongside the run's own events.
 - ``UsageStep``
 - ``UsageTotals``
 - ``UsageView``
-- ``TokenBreakdown``
 - ``TokenBreakdownView``
-- ``TokenCategory``
 - ``CostDisplaySettings``
 - ``CostDisplayCurrency``
 - ``ExchangeRateService``

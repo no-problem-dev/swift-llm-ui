@@ -76,7 +76,7 @@ public struct UsageTurn: Sendable, Identifiable, Hashable {
     }
 
     public var usage: TokenUsage {
-        steps.map(\.usage).reduce(.zero, +)
+        steps.map(\.usage).reduce(.zero) { $0.adding($1) }
     }
 
     /// The sum of the steps whose cost is known.
@@ -129,7 +129,7 @@ public struct UsageTotals: Sendable, Hashable {
         self.init(
             turnCount: turns.count,
             stepCount: steps.count,
-            usage: steps.map(\.usage).reduce(.zero, +),
+            usage: steps.map(\.usage).reduce(.zero) { $0.adding($1) },
             cost: steps.compactMap(\.cost).reduce(.zero, +),
             hasUnpricedSteps: steps.contains { $0.cost == nil }
         )
@@ -221,32 +221,5 @@ public final class UsageLedger {
     /// Prices one step, or answers `nil` when the model is not in the catalog or has no price sheet.
     private func cost(of usage: TokenUsage, modelID: String) -> Money<USD>? {
         pricing(forModelID: modelID).map { CostCalculator.cost(of: usage, with: $0) }
-    }
-}
-
-// MARK: - TokenUsage arithmetic
-
-public extension TokenUsage {
-    static let zero = TokenUsage(inputTokens: 0, outputTokens: 0)
-
-    /// Adds two usages, keeping a subset count `nil` only when neither side reported it.
-    ///
-    /// Treating a missing count as zero when the other side has one would turn "not reported" into
-    /// "reported as none", and the UI would show a breakdown that does not add up.
-    static func + (lhs: TokenUsage, rhs: TokenUsage) -> TokenUsage {
-        func add(_ a: Int?, _ b: Int?) -> Int? {
-            guard a != nil || b != nil else {
-                return nil
-            }
-            return (a ?? 0) + (b ?? 0)
-        }
-        return TokenUsage(
-            inputTokens: lhs.inputTokens + rhs.inputTokens,
-            outputTokens: lhs.outputTokens + rhs.outputTokens,
-            reasoningTokens: add(lhs.reasoningTokens, rhs.reasoningTokens),
-            cacheReadTokens: add(lhs.cacheReadTokens, rhs.cacheReadTokens),
-            cacheCreationTokens: add(lhs.cacheCreationTokens, rhs.cacheCreationTokens),
-            cacheTier: lhs.cacheTier ?? rhs.cacheTier
-        )
     }
 }
