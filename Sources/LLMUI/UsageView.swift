@@ -14,7 +14,6 @@
     public struct UsageView: View {
         private let ledger: UsageLedger
         private let settings: CostDisplaySettings
-        private let catalog: ModelCatalog?
         private let onCopy: ((String) -> Void)?
         private let onRefreshRate: (() async -> Void)?
 
@@ -23,13 +22,11 @@
         public init(
             ledger: UsageLedger,
             settings: CostDisplaySettings,
-            catalog: ModelCatalog? = nil,
             onCopy: ((String) -> Void)? = nil,
             onRefreshRate: (() async -> Void)? = nil
         ) {
             self.ledger = ledger
             self.settings = settings
-            self.catalog = catalog
             self.onCopy = onCopy
             self.onRefreshRate = onRefreshRate
         }
@@ -53,7 +50,7 @@
                         )
                     } else {
                         ForEach(ledger.turns.reversed()) { turn in
-                            UsageTurnCard(turn: turn, settings: settings, pricing: pricing(for: turn))
+                            UsageTurnCard(turn: turn, breakdown: ledger.breakdown(of: turn), settings: settings)
                         }
                     }
                 }
@@ -62,8 +59,7 @@
         }
 
         private var summary: some View {
-            let breakdown = TokenBreakdown(usage: totals.usage, pricing: dominantPricing)
-            return VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 12) {
                 HStack {
                     Label("Session", systemImage: "sum")
                         .font(.subheadline.weight(.semibold))
@@ -94,7 +90,7 @@
                     }
                 }
 
-                TokenBreakdownView(breakdown, settings: settings)
+                TokenBreakdownView(ledger.breakdown, settings: settings)
 
                 HStack(spacing: 16) {
                     DebugMetric("turns", "\(totals.turnCount)")
@@ -120,28 +116,6 @@
                 return "at least — some steps had no price sheet"
             }
             return settings.multiplierNote ?? "estimated"
-        }
-
-        /// The price sheet to split the session bar by.
-        ///
-        /// A session can mix models, and there is no single correct sheet for a combined bar; the
-        /// most-used model is the closest honest answer. Per-turn bars use their own turn's sheet.
-        private var dominantPricing: Pricing? {
-            let counts = ledger.turns
-                .flatMap(\.steps)
-                .reduce(into: [String: Int]()) { $0[$1.modelID, default: 0] += 1 }
-            guard let modelID = counts.max(by: { $0.value < $1.value })?.key else {
-                return nil
-            }
-            return pricing(forModelID: modelID)
-        }
-
-        private func pricing(for turn: UsageTurn) -> Pricing? {
-            turn.modelIDs.first.flatMap(pricing(forModelID:))
-        }
-
-        private func pricing(forModelID modelID: String) -> Pricing? {
-            catalog?.models.first { $0.modelID == modelID }?.profile.pricing
         }
 
         private func transcript() -> String {
@@ -172,19 +146,15 @@
     /// One turn, closed to a headline and a bar, open to its steps.
     struct UsageTurnCard: View {
         let turn: UsageTurn
+        let breakdown: TokenBreakdown
         let settings: CostDisplaySettings
-        let pricing: Pricing?
 
         @State private var isExpanded = false
 
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
                 header
-                TokenBreakdownView(
-                    TokenBreakdown(usage: turn.usage, pricing: pricing),
-                    settings: settings,
-                    isCompact: true
-                )
+                TokenBreakdownView(breakdown, settings: settings, isCompact: true)
                 if isExpanded {
                     Divider()
                     ForEach(turn.steps) { step in

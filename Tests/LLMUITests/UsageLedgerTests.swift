@@ -29,6 +29,21 @@ private func makeCatalog() -> ModelCatalog {
                 )
             ),
             ModelDescriptor(
+                id: "test:expensive",
+                providerID: "test",
+                modelID: "expensive-model",
+                displayName: "Expensive",
+                shortName: "Expensive",
+                profile: ModelProfile(
+                    summary: "",
+                    modelFamily: "Test",
+                    toolCallSupport: .excellent,
+                    japaneseSupport: .excellent,
+                    modalities: [.text],
+                    pricing: .flat(inputPerMTok: 1000, outputPerMTok: 10_000)
+                )
+            ),
+            ModelDescriptor(
                 id: "test:unpriced",
                 providerID: "test",
                 modelID: "unpriced-model",
@@ -145,6 +160,53 @@ struct UsageLedgerTests {
         )
 
         #expect(ledger.totals.cacheHitRate == 0.75)
+    }
+
+    /// 1 つのモデルの料金表でセッション全体を割ると、混ざったときに嘘になる。
+    /// 安いモデルのトークンを高いモデルの単価で塗ってしまうため。
+    @Test("モデルが混ざっても、各ステップは自分の料金表で計算する")
+    func aMixedSessionPricesEachStepWithItsOwnSheet() {
+        let ledger = UsageLedger(catalog: makeCatalog())
+        // 同じトークン数を、安いモデルと高いモデルで 1 回ずつ
+        let usage = TokenUsage(inputTokens: 1_000_000, outputTokens: 0)
+        ledger.record(usage: usage, modelID: "priced-model")     // $10
+        ledger.record(usage: usage, modelID: "expensive-model")  // $1000
+
+        #expect(ledger.totals.cost.value == 1010)
+
+        // 費用の割合も、片方の単価で塗り直さない
+        let inputSlice = ledger.breakdown.slices.first { $0.category == .input }
+        #expect(inputSlice?.cost?.value == 1010)
+        #expect(inputSlice?.tokens == 2_000_000)
+    }
+
+    /// 合計は「ステップごとに正しく出した費用」の和であって、
+    /// 割合を出すために選んだ 1 枚の料金表からは作らない。
+    @Test("内訳の合計は合計費用と一致する")
+    func theBreakdownAddsUpToTheTotal() {
+        let ledger = UsageLedger(catalog: makeCatalog())
+        ledger.record(
+            usage: TokenUsage(inputTokens: 500_000, outputTokens: 100_000, cacheReadTokens: 200_000),
+            modelID: "priced-model"
+        )
+        ledger.record(
+            usage: TokenUsage(inputTokens: 300_000, outputTokens: 50_000),
+            modelID: "expensive-model"
+        )
+
+        let summed = ledger.breakdown.slices.compactMap(\.cost).reduce(Money<USD>.zero, +)
+        #expect(abs(summed.value - ledger.totals.cost.value) < 0.000_001)
+    }
+
+    @Test("料金表が無いステップが混ざっても、分かる分だけ足す")
+    func unpricedStepsDoNotBreakTheBreakdown() {
+        let ledger = UsageLedger(catalog: makeCatalog())
+        ledger.record(usage: TokenUsage(inputTokens: 1_000_000, outputTokens: 0), modelID: "priced-model")
+        ledger.record(usage: TokenUsage(inputTokens: 1_000_000, outputTokens: 0), modelID: "unpriced-model")
+
+        #expect(ledger.breakdown.slices.first { $0.category == .input }?.tokens == 2_000_000)
+        #expect(ledger.totals.cost.value == 10)
+        #expect(ledger.totals.hasUnpricedSteps)
     }
 
     @Test("何も無いときのキャッシュ率は 0")

@@ -106,6 +106,43 @@ public struct TokenBreakdown: Sendable, Hashable {
         totalCost = pricing.map { CostCalculator.cost(of: usage, with: $0) }
     }
 
+    /// Combines breakdowns that were each priced by their own model's sheet.
+    ///
+    /// A session can mix models, and there is no single sheet that prices all of it: charging a
+    /// cheap model's tokens at an expensive model's rates is wrong exactly when the mixture is the
+    /// interesting part. Adding up per-model breakdowns keeps every token at the rate it was
+    /// actually billed at.
+    ///
+    /// The result is unpriced only when none of the parts were priced; a part with no sheet
+    /// contributes its tokens and no cost, which is what ``UsageTotals/hasUnpricedSteps`` warns
+    /// about.
+    public init(combining breakdowns: [TokenBreakdown]) {
+        usage = breakdowns.map(\.usage).reduce(.zero, +)
+
+        var tokensByCategory: [TokenCategory: Int] = [:]
+        var costByCategory: [TokenCategory: Money<USD>] = [:]
+        for breakdown in breakdowns {
+            for slice in breakdown.slices {
+                tokensByCategory[slice.category, default: 0] += slice.tokens
+                if let cost = slice.cost {
+                    costByCategory[slice.category, default: .zero] = costByCategory[
+                        slice.category, default: .zero
+                    ] + cost
+                }
+            }
+        }
+
+        slices = TokenCategory.allCases.compactMap { category in
+            guard let tokens = tokensByCategory[category], tokens > 0 else {
+                return nil
+            }
+            return Slice(category: category, tokens: tokens, cost: costByCategory[category])
+        }
+
+        let totals = breakdowns.compactMap(\.totalCost)
+        totalCost = totals.isEmpty ? nil : totals.reduce(.zero, +)
+    }
+
     public var totalTokens: Int {
         slices.reduce(0) { $0 + $1.tokens }
     }

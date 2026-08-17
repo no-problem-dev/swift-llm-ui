@@ -115,7 +115,6 @@
                     UsageView(
                         ledger: console.usage,
                         settings: console.costSettings,
-                        catalog: console.catalog,
                         onCopy: onCopy,
                         onRefreshRate: { await console.refreshExchangeRate() }
                     )

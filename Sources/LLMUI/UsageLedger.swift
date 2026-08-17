@@ -170,6 +170,28 @@ public final class UsageLedger {
         UsageTotals(turns: turns)
     }
 
+    /// The whole session split by category, each step priced by the model that served it.
+    public var breakdown: TokenBreakdown {
+        breakdown(of: turns.flatMap(\.steps))
+    }
+
+    /// One turn split by category, each step priced by the model that served it.
+    public func breakdown(of turn: UsageTurn) -> TokenBreakdown {
+        breakdown(of: turn.steps)
+    }
+
+    private func breakdown(of steps: [UsageStep]) -> TokenBreakdown {
+        TokenBreakdown(
+            combining: steps.map {
+                TokenBreakdown(usage: $0.usage, pricing: pricing(forModelID: $0.modelID))
+            }
+        )
+    }
+
+    private func pricing(forModelID modelID: String) -> Pricing? {
+        catalog?.models.first { $0.modelID == modelID }?.profile.pricing
+    }
+
     /// Starts a turn. Steps recorded afterwards belong to it.
     public func startTurn(label: String? = nil) {
         turns.append(UsageTurn(index: turns.count + 1, label: label))
@@ -198,13 +220,7 @@ public final class UsageLedger {
 
     /// Prices one step, or answers `nil` when the model is not in the catalog or has no price sheet.
     private func cost(of usage: TokenUsage, modelID: String) -> Money<USD>? {
-        guard
-            let descriptor = catalog?.models.first(where: { $0.modelID == modelID }),
-            let pricing = descriptor.profile.pricing
-        else {
-            return nil
-        }
-        return CostCalculator.cost(of: usage, with: pricing)
+        pricing(forModelID: modelID).map { CostCalculator.cost(of: usage, with: $0) }
     }
 }
 
