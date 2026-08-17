@@ -8,7 +8,7 @@ import Observation
 /// What happened during a run, kept so a screen can show it.
 ///
 /// `AgentLoop` reports what it is doing through its event stream and what it cost through
-/// ``AgentTelemetry``; neither is retained, so by the time a person wants to look, it is gone.
+/// `AgentTelemetry`; neither is retained, so by the time a person wants to look, it is gone.
 /// This holds both in one ordered list, oldest first, capped so a long session cannot grow
 /// without bound.
 ///

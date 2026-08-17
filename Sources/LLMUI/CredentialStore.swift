@@ -16,7 +16,7 @@ public enum CredentialSource: Sendable, Hashable {
 
 /// Where a typed-in API key is kept.
 ///
-/// Providers are addressed by ``ModelPreset/providerID``, a plain `String`, so adding a provider
+/// Providers are addressed by `ModelPreset.providerID`, a plain `String`, so adding a provider
 /// never reaches this protocol. The default implementation writes to `UserDefaults`; conform your
 /// own to put keys in the keychain instead.
 public protocol CredentialStoring: Sendable {
@@ -131,7 +131,7 @@ public struct CredentialResolver: Sendable {
 
 /// A provider as a credentials screen sees it: a name to show and somewhere to read a key from.
 public struct CredentialProvider: Sendable, Identifiable, Hashable {
-    /// Matches ``ModelPreset/providerID``, so the key found here is the key that provider's models
+    /// Matches `ModelPreset.providerID`, so the key found here is the key that provider's models
     /// are called with.
     public let id: String
 

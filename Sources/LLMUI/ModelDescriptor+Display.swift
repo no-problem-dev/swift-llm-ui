@@ -28,7 +28,7 @@ public extension ModelDescriptor {
     /// The first pricing tier, per million tokens (`"$1.50 / $7.50 per 1M"`).
     ///
     /// Only the first tier: a row cannot hold a table, and the first is what a short prompt is
-    /// billed at. ``ModelDescriptor/profile`` has the rest for a screen with room for it.
+    /// billed at. `ModelDescriptor.profile` has the rest for a screen with room for it.
     var entryPriceText: String? {
         guard let tier = profile.pricing?.tiers.first else {
             return nil

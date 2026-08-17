@@ -6,7 +6,7 @@
 
     // MARK: - ModelPickerView
 
-    /// Lets someone pick a model out of a ``ModelCatalog``.
+    /// Lets someone pick a model out of a `ModelCatalog`.
     ///
     /// The view reads descriptors and nothing else, so it never names a provider. Offering one
     /// more provider means adding its `descriptors` to the catalog; this file does not change.
@@ -19,7 +19,7 @@
 
         /// - Parameters:
         ///   - catalog: The models on offer.
-        ///   - selectedModelID: The chosen model's ``ModelDescriptor/id``. Written on selection.
+        ///   - selectedModelID: The chosen model's `ModelDescriptor.id`. Written on selection.
         ///   - providerNames: How to spell each `providerID` in a section header. A provider left
         ///     out is headed by its identifier, which is legible enough to ship without.
         public init(

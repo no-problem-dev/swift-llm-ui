@@ -21,9 +21,9 @@ in packages that build and run on Linux. Keeping SwiftUI in a package of its own
 them stay that way — a server can link the model catalog and the agent loop without pulling a UI
 framework behind it.
 
-So ``ModelCatalog`` and ``ModelPreset`` are not defined here. A server needs them as much as a
+So `ModelCatalog` and `ModelPreset` are not defined here. A server needs them as much as a
 settings screen does, and they belong to `LLMClient`. What this package adds is wording and
-layout: ``ModelDescriptor/contextWindowText``, a row, a badge, a filter.
+layout: `ModelDescriptor.contextWindowText`, a row, a badge, a filter.
 
 The one thing here that is not a view is ``AgentTraceLog``, and it is here for the same reason —
 it is `@MainActor` and `@Observable`, which is view state. The agent loop is deliberately free of
@@ -31,8 +31,8 @@ both, so the log that watches it lives on this side of the line.
 
 ### Choosing a model
 
-Build a ``ModelCatalog`` from the presets you want to offer and bind the identifier you store.
-Read it back through ``ModelCatalog/resolve(_:)``, which answers with the default when the stored
+Build a `ModelCatalog` from the presets you want to offer and bind the identifier you store.
+Read it back through `ModelCatalog.resolve(_:)`, which answers with the default when the stored
 choice names a model the catalog no longer has.
 
 ```swift

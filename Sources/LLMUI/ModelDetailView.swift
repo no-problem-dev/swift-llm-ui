@@ -5,7 +5,7 @@
 
     // MARK: - ModelDetailView
 
-    /// Everything a ``ModelDescriptor`` knows, for deciding between two models that look alike in
+    /// Everything a `ModelDescriptor` knows, for deciding between two models that look alike in
     /// a list.
     public struct ModelDetailView: View {
         private let model: ModelDescriptor
