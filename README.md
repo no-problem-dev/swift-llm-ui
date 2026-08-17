@@ -37,7 +37,7 @@ is wording and layout.
 ```swift
 // Package.swift
 dependencies: [
-    .package(url: "https://github.com/no-problem-dev/swift-llm-ui.git", .upToNextMinor(from: "0.3.0"))
+    .package(url: "https://github.com/no-problem-dev/swift-llm-ui.git", .upToNextMinor(from: "0.4.0"))
 ]
 ```
 

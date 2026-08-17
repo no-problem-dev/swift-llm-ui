@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-08-17
+
 ### Changed
 
 - **BREAKING** — the console is organised by provider. A key and a model list were two screens
