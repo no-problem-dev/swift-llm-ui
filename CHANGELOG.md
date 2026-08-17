@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **A session that mixed models drew the wrong cost split.** The total was right — it is summed
+  per step — but the cost bar re-derived its proportions from a single price sheet, picked as the
+  model with the most steps. A cheap model's tokens were then charged at an expensive model's
+  rates, so the figure was wrong precisely when the mixture was the interesting part. Worse, the
+  "most used" model was chosen with `Dictionary.max`, so a tie could redraw differently with no
+  change in data. `TokenBreakdown(combining:)` now adds up per-model breakdowns, and
+  `UsageLedger.breakdown` / `breakdown(of:)` hand the view something already priced correctly, so
+  no screen picks a price sheet.
+
+### Changed
+
+- `UsageView.init` no longer takes a `catalog`; the ledger it is given already knows the prices.
+
 ## [0.1.1] - 2026-08-17
 
 ### Added
