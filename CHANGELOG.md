@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-08-17
+
 ### Removed
 
 - **BREAKING** — `TokenBreakdown` and `TokenCategory` moved to `LLMCore` (swift-llm-client 5.2.0).
