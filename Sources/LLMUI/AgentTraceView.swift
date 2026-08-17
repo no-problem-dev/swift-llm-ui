@@ -2,6 +2,19 @@
 
     import SwiftUI
 
+    public extension AgentTraceLog.TintName {
+        /// The colour this tint means.
+        var color: Color {
+            switch self {
+            case .neutral: .secondary
+            case .warm: .orange
+            case .cool: .blue
+            case .alarming: .red
+            case .spending: .purple
+            }
+        }
+    }
+
     // MARK: - AgentTraceView
 
     /// Shows what an ``AgentTraceLog`` collected: newest first, filterable, with the long form
@@ -87,47 +100,41 @@
         }
 
         private var chips: some View {
-            ScrollView(.horizontal) {
-                HStack(spacing: 8) {
-                    chip(title: "All", kind: nil, count: log.entries.count)
-                    ForEach(AgentTraceLog.Kind.allCases, id: \.self) { kind in
+            FilterChips(
+                options: [(nil, "All", log.entries.count)]
+                    + AgentTraceLog.Kind.allCases.compactMap { kind in
                         let count = log.entries.count { $0.kind == kind }
-                        if count > 0 {
-                            chip(title: kind.rawValue, kind: kind, count: count)
-                        }
-                    }
-                }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-            }
-            .scrollIndicators(.hidden)
-        }
-
-        private func chip(title: String, kind: AgentTraceLog.Kind?, count: Int) -> some View {
-            let isSelected = filter == kind
-            return Button {
-                filter = kind
-            } label: {
-                Text("\(title) \(count)")
-                    .font(.caption)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(
-                        isSelected ? Color.accentColor.opacity(0.2) : Color.secondary.opacity(0.12),
-                        in: Capsule()
-                    )
-                    .foregroundStyle(isSelected ? Color.accentColor : Color.secondary)
-            }
-            .buttonStyle(.plain)
+                        return count > 0 ? (kind, kind.label, count) : nil
+                    },
+                selection: $filter
+            )
         }
 
         private func row(_ entry: AgentTraceLog.Entry) -> some View {
             HStack(alignment: .top, spacing: 8) {
                 Image(systemName: entry.kind.systemImage)
                     .font(.caption)
-                    .foregroundStyle(entry.kind == .failure ? Color.red : Color.secondary)
+                    .foregroundStyle(entry.kind.tintName.color)
 
                 VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(entry.kind.label)
+                            .font(.caption2.weight(.bold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(
+                                Capsule().fill(entry.kind.tintName.color.opacity(0.18))
+                            )
+                            .foregroundStyle(entry.kind.tintName.color)
+                        Text(entry.at, format: .dateTime.hour().minute().second())
+                            .font(.caption2.monospacedDigit())
+                            .foregroundStyle(.secondary)
+                        Spacer(minLength: 0)
+                        Image(systemName: "chevron.right")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
+                    }
+
                     Text(entry.summary)
                         .font(.caption.monospaced())
                         .foregroundStyle(entry.kind == .failure ? Color.red : Color.primary)

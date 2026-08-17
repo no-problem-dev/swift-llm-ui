@@ -101,6 +101,11 @@ system prompt and each step's token counts alongside the run's own events.
 - ``CostDisplayCurrency``
 - ``ExchangeRateService``
 
+### Inspecting payloads
+
+- ``PayloadInspectorView``
+- ``InspectablePayload``
+
 ### Building a debug screen
 
 - ``DebugCard``

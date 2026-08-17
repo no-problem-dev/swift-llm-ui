@@ -63,6 +63,33 @@ public final class AgentTraceLog {
         case failure
         case llm
 
+        /// How the kind is named in a filter or a header.
+        public var label: String {
+            switch self {
+            case .run: "Run"
+            case .text: "Text"
+            case .tool: "Tool"
+            case .surface: "Surface"
+            case .failure: "Error"
+            case .llm: "LLM"
+            }
+        }
+
+        /// The colour this kind is drawn in, so a list can be skimmed by hue.
+        ///
+        /// Semantic rather than decorative: failures are the only red, and everything that costs
+        /// money shares one colour.
+        public var tintName: TintName {
+            switch self {
+            case .run: .neutral
+            case .text: .neutral
+            case .tool: .warm
+            case .surface: .cool
+            case .failure: .alarming
+            case .llm: .spending
+            }
+        }
+
         /// An SF Symbol name.
         public var systemImage: String {
             switch self {
@@ -74,6 +101,15 @@ public final class AgentTraceLog {
             case .llm: "brain"
             }
         }
+    }
+
+    /// Names a colour without naming a UI framework, so the log stays drawable anywhere.
+    public enum TintName: String, Sendable, Hashable {
+        case neutral
+        case warm
+        case cool
+        case alarming
+        case spending
     }
 
     // MARK: - Recording
