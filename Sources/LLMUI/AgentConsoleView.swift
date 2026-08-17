@@ -1,5 +1,6 @@
 #if canImport(SwiftUI)
 
+    import Foundation
     import SwiftUI
 
     // MARK: - AgentConsoleView
@@ -112,7 +113,7 @@
                     #endif
                 } label: {
                     LabeledContent("Trace") {
-                        Text("\(console.trace.entries.count)")
+                        Text(traceSummary)
                             .foregroundStyle(.secondary)
                             .monospacedDigit()
                     }
@@ -126,6 +127,17 @@
             } header: {
                 Text("This session")
             }
+        }
+
+        /// How many runs, and whether any of them failed — the failure is the reason to look.
+        private var traceSummary: String {
+            let runs = console.trace.runs
+            guard !runs.isEmpty else {
+                return "—"
+            }
+            let failures = runs.count(where: \.hasFailure)
+            let runText = runs.count == 1 ? "1 run" : "\(runs.count) runs"
+            return failures > 0 ? "\(runText) · \(failures) failed" : runText
         }
 
         private var usageSummary: String {
@@ -151,6 +163,10 @@
 
         public static func provider(_ providerID: String) -> String {
             "console.provider.\(providerID)"
+        }
+
+        public static func run(_ runID: UUID) -> String {
+            "console.run.\(runID.uuidString)"
         }
 
         public static func credentialField(_ providerID: String) -> String {

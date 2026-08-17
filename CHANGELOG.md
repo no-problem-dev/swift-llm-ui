@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Runs are recorded rather than inferred. `AgentTraceLog.beginRun(label:)` and `endRun()` bracket
+  an execution, `AgentTraceLog.Run` groups the entries it contains, and `runs` reads them back.
+  A run was previously only a `run.started` line that happened to be in the list — nothing a
+  screen could open, count, or copy on its own.
+- `AgentRunListView`, `AgentRunView` and `AgentEntryView`: executions, what one did, and one entry
+  in full. `AgentTraceView` now shows the run list, so an existing call site gets the grouping
+  without changing.
+- `AgentTraceLog.Entry.result`, with `attachResult(_:to:summary:)`. A tool call is one thing that
+  happened; its arguments and what came back were two rows to match up by eye.
+- `AgentTraceLog.transcript(of:)` copies one run. The whole session is usually too much to paste
+  into a bug report.
+- `AgentConsole.endTurn()`, and `startTurn(label:)` now opens the trace's run alongside the
+  ledger's turn, so what a run cost and what it did cannot drift apart.
+
+### Fixed
+
+- Merging no longer reaches across a run boundary. A streamed delta arriving first in a new run
+  would join the last entry of the previous one.
+- A run left with no entries by the size limit is forgotten rather than listed as empty.
+
 ## [0.4.0] - 2026-08-17
 
 ### Changed

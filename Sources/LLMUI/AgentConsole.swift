@@ -116,9 +116,18 @@ public final class AgentConsole {
         }
     }
 
-    /// Marks the start of a turn, so the steps that follow are grouped under it.
+    /// Marks the start of a turn, so what follows is grouped under it in both instruments.
+    ///
+    /// The ledger's turn and the trace's run are the same event seen twice — what it cost and what
+    /// it did. Opening them together is what keeps the two from drifting apart.
     public func startTurn(label: String? = nil) {
         usage.startTurn(label: label)
+        trace.beginRun(label: label)
+    }
+
+    /// Marks the end of a turn, so later entries are not attributed to it.
+    public func endTurn() {
+        trace.endRun()
     }
 
     /// Fetches a fresh USD→JPY rate.

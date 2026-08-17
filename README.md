@@ -18,7 +18,8 @@ key, and look at what just happened. This package is those screens.
 - **An API key field** that says whether the key in use came from the device or the environment,
   which is the first question when a call fails on auth
 - **A trace view** over `AgentTraceLog`, which collects an agent run's events and its telemetry —
-  the assembled system prompt and per-step token counts — so they are still there to look at
+  the assembled system prompt and per-step token counts — so they are still there to look at.
+  Entries are grouped by the run they happened in, so the list is of executions rather than lines
 
 ## Where the line is
 
@@ -120,6 +121,26 @@ AgentTraceView(log: log, emptyMessage: "Send a message to fill this in.") { text
 
 `onCopy` is a closure because the pasteboard type differs per platform; leaving it off hides the
 copy buttons.
+
+Bracket each execution so the entries have somewhere to belong:
+
+```swift
+log.beginRun(label: message.text)
+defer { log.endRun() }
+```
+
+`runs` then groups the entries back, and the view lists executions rather than a few hundred
+undifferentiated lines. `AgentConsole.startTurn(label:)` does this and the ledger's turn together,
+so what a run cost and what it did cannot drift apart.
+
+A tool call is one thing that happened, not two. Record the call, then answer it when the result
+arrives, and both stay on one entry:
+
+```swift
+log.append(.tool, "search", detail: arguments)
+// later
+log.attachResult(output, to: .tool, summary: "search")
+```
 
 ## Requirements
 

@@ -59,6 +59,15 @@ leaving the provider unusable.
 Give ``AgentTraceLog/record(_:)`` to the loop as its telemetry sink and it collects the assembled
 system prompt and each step's token counts alongside the run's own events.
 
+Bracket each execution with ``AgentTraceLog/beginRun(label:)`` and ``AgentTraceLog/endRun()`` —
+or let ``AgentConsole/startTurn(label:)`` do it, which opens the ledger's turn and the trace's run
+together. Entries are then stamped with the run they happened in, and ``AgentTraceLog/runs``
+groups them back, so a screen lists executions rather than a few hundred undifferentiated lines.
+
+A tool call is one thing that happened, not two. Record the call, then answer it with
+``AgentTraceLog/attachResult(_:to:summary:)`` when the result arrives, and the arguments and what
+came back stay on one entry instead of becoming two rows to match up by eye.
+
 ## Topics
 
 ### The console
@@ -88,6 +97,9 @@ system prompt and each step's token counts alongside the run's own events.
 
 - ``AgentTraceView``
 - ``AgentTraceLog``
+- ``AgentRunListView``
+- ``AgentRunView``
+- ``AgentEntryView``
 
 ### What it cost
 
