@@ -67,10 +67,12 @@ system prompt and each step's token counts alongside the run's own events.
 - ``AgentConsoleView``
 - ``AgentConsoleID``
 
-### Choosing a model
+### Providers and models
 
-- ``ModelPickerView``
+- ``ProviderDetailView``
+- ``ProviderRow``
 - ``ModelDetailView``
+- ``ModelPickerView``
 
 ### Credentials
 
@@ -94,6 +96,8 @@ system prompt and each step's token counts alongside the run's own events.
 - ``UsageStep``
 - ``UsageTotals``
 - ``UsageView``
+- ``UsageTurnView``
+- ``UsageStepView``
 - ``TokenBreakdownView``
 - ``CostDisplaySettings``
 - ``CostDisplayCurrency``

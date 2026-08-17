@@ -50,7 +50,21 @@
                         )
                     } else {
                         ForEach(ledger.turns.reversed()) { turn in
-                            UsageTurnCard(turn: turn, breakdown: ledger.breakdown(of: turn), settings: settings)
+                            NavigationLink {
+                                UsageTurnView(
+                                    turn: turn,
+                                    breakdown: ledger.breakdown(of: turn),
+                                    settings: settings,
+                                    stepBreakdown: { ledger.breakdown(of: $0) }
+                                )
+                            } label: {
+                                UsageTurnCard(
+                                    turn: turn,
+                                    breakdown: ledger.breakdown(of: turn),
+                                    settings: settings
+                                )
+                            }
+                            .buttonStyle(.plain)
                         }
                     }
                 }
@@ -143,42 +157,15 @@
 
     // MARK: - UsageTurnCard
 
-    /// One turn, closed to a headline and a bar, open to its steps.
+    /// One turn as a row: what it came to, and how it split.
     struct UsageTurnCard: View {
         let turn: UsageTurn
         let breakdown: TokenBreakdown
         let settings: CostDisplaySettings
 
-        @State private var isExpanded = false
-
         var body: some View {
             VStack(alignment: .leading, spacing: 8) {
-                header
-                TokenBreakdownView(breakdown, settings: settings, isCompact: true)
-                if isExpanded {
-                    Divider()
-                    ForEach(turn.steps) { step in
-                        UsageStepRow(step: step, settings: settings)
-                    }
-                }
-            }
-            .padding(14)
-            .background(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                    .fill(Color.debugCardBackground)
-            )
-        }
-
-        private var header: some View {
-            Button {
-                withAnimation(.snappy) { isExpanded.toggle() }
-            } label: {
                 HStack(alignment: .top, spacing: 8) {
-                    Image(systemName: isExpanded ? "chevron.down" : "chevron.right")
-                        .font(.caption.weight(.bold))
-                        .foregroundStyle(.secondary)
-                        .padding(.top, 2)
-
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Turn \(turn.index)")
                             .font(.subheadline.weight(.semibold))
@@ -204,12 +191,19 @@
                         Text(settings.format(turn.cost))
                             .font(.caption2.monospacedDigit())
                             .foregroundStyle(.green)
+                        Text("\(turn.steps.count) steps")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
                 }
-                .contentShape(Rectangle())
+
+                TokenBreakdownView(breakdown, settings: settings, isCompact: true)
             }
-            .buttonStyle(.plain)
-            .accessibilityHint(Text(isExpanded ? "Collapse steps" : "Expand steps"))
+            .padding(14)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.debugCardBackground)
+            )
         }
     }
 

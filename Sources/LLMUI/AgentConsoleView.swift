@@ -34,8 +34,7 @@
 
         public var body: some View {
             List {
-                modelSection
-                credentialsSection
+                providerSection
                 instrumentSection
                 extraSections
             }
@@ -45,66 +44,36 @@
             #endif
         }
 
-        // MARK: Model
+        // MARK: Providers
 
-        private var modelSection: some View {
+        private var providerSection: some View {
             Section {
-                NavigationLink {
-                    ModelPickerView(
-                        catalog: console.catalog,
-                        selectedModelID: Binding(
-                            get: { console.selectedModelID },
-                            set: { console.selectedModelID = $0 }
-                        ),
-                        providerNames: console.providerNames
-                    )
-                    .navigationTitle("Model")
-                    #if os(iOS)
-                        .navigationBarTitleDisplayMode(.inline)
-                    #endif
-                } label: {
-                    LabeledContent("Model") {
-                        Text(console.selectedModel?.displayName ?? console.selectedModelID)
-                            .foregroundStyle(.secondary)
+                ForEach(console.providers) { provider in
+                    NavigationLink {
+                        ProviderDetailView(provider: provider, console: console)
+                    } label: {
+                        ProviderRow(provider: provider, console: console)
                     }
+                    .accessibilityIdentifier(AgentConsoleID.provider(provider.id))
                 }
-                .accessibilityIdentifier(AgentConsoleID.modelRow)
             } header: {
-                Text("Runs on")
+                Text("Providers")
             } footer: {
-                if let model = console.selectedModel {
-                    Text(model.profile.summary)
-                }
+                Text(runsOn)
             }
         }
 
-        // MARK: Credentials
-
-        private var credentialsSection: some View {
-            Section {
-                NavigationLink {
-                    CredentialsView(console: console)
-                } label: {
-                    LabeledContent("API keys") {
-                        Text(credentialSummary)
-                            .foregroundStyle(hasKeyForSelectedModel ? Color.secondary : Color.red)
-                    }
-                }
-                .accessibilityIdentifier(AgentConsoleID.credentialsRow)
-            } footer: {
-                if !hasKeyForSelectedModel, let provider = console.selectedProvider {
-                    Text("No key for \(provider.displayName). Runs will fail until one is set.")
-                }
+        /// Says what would run right now, in one line — including why it would not.
+        private var runsOn: String {
+            guard let model = console.selectedModel else {
+                return "No model selected."
             }
-        }
-
-        private var hasKeyForSelectedModel: Bool {
-            console.apiKey != nil
-        }
-
-        private var credentialSummary: String {
-            let set = console.providers.filter { console.credentials.key(for: $0) != nil }.count
-            return "\(set) of \(console.providers.count)"
+            guard console.apiKey != nil else {
+                let name = console.selectedProvider?.displayName ?? model.providerID
+                return "\(model.displayName) is selected, but \(name) has no key."
+            }
+            let effort = console.reasoningEffort.map { ", thinking \($0.rawValue)" } ?? ""
+            return "Runs \(model.displayName)\(effort)."
         }
 
         // MARK: Instruments
@@ -174,11 +143,15 @@
     ///
     /// The labels are display text and will change. These will not.
     public enum AgentConsoleID {
-        public static let modelRow = "console.model"
-        public static let credentialsRow = "console.credentials"
         public static let usageRow = "console.usage"
         public static let traceRow = "console.trace"
+        public static let useModel = "console.useModel"
+        public static let effortPicker = "console.effort"
         public static let done = "console.done"
+
+        public static func provider(_ providerID: String) -> String {
+            "console.provider.\(providerID)"
+        }
 
         public static func credentialField(_ providerID: String) -> String {
             "console.credential.\(providerID)"

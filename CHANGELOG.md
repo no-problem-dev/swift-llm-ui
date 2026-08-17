@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING** — the console is organised by provider. A key and a model list were two screens
+  about the same thing, so answering "can I use this?" took two trips; now a provider opens onto
+  its key with the models it unlocks directly below. `AgentConsoleID.modelRow` and
+  `.credentialsRow` are gone, replaced by `AgentConsoleID.provider(_:)`.
+- Reasoning effort moved onto the model it applies to. It is a property of the model — one that
+  cannot reason ignores it — so it now lives in `ModelDetailView` for the model in use, and
+  `AgentConsole.reasoningEffort` stores it.
+- `ModelDetailView` selects. Choosing from a one-line summary meant deciding without the facts;
+  the button is now on the screen that has them. Pass a console to enable it.
+- Turns and steps are screens, not disclosure rows. A step has a model, a token split and a cost —
+  enough to be worth opening — so `UsageTurnView` and `UsageStepView` give each one a place.
+
+### Added
+
+- `UsageLedger.breakdown(of:)` for a single step.
+
 ## [0.3.0] - 2026-08-17
 
 ### Removed

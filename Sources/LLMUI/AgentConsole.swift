@@ -33,6 +33,7 @@ public final class AgentConsole {
     private let exchangeRates: ExchangeRateService
     private let defaults: UserDefaults
     private let modelDefaultsKey: String
+    private let effortDefaultsKey: String
 
     /// The chosen model, as a `ModelDescriptor.id`.
     ///
@@ -58,6 +59,18 @@ public final class AgentConsole {
     /// The key to call the chosen model with, or `nil` when none is set.
     public var apiKey: String? {
         selectedProvider.flatMap(credentials.key(for:))
+    }
+
+    /// How hard the model should think, or `nil` to leave it to the model.
+    ///
+    /// Belongs to the model rather than the app: a model that cannot reason ignores it, and one
+    /// that can will snap a tier it does not offer to the nearest it does.
+    public var reasoningEffort: ReasoningEffort? {
+        get {
+            defaults.string(forKey: effortDefaultsKey)
+                .flatMap(ReasoningEffort.init(rawValue:))
+        }
+        set { defaults.set(newValue?.rawValue ?? "", forKey: effortDefaultsKey) }
     }
 
     /// - Parameters:
@@ -89,6 +102,7 @@ public final class AgentConsole {
         self.exchangeRates = exchangeRates
         self.defaults = defaults
         modelDefaultsKey = defaultsKeyPrefix + "selectedModel"
+        effortDefaultsKey = defaultsKeyPrefix + "reasoningEffort"
     }
 
     /// Records one telemetry report: into the trace, and — for usage — into the ledger too.

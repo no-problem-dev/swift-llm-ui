@@ -180,6 +180,11 @@ public final class UsageLedger {
         breakdown(of: turn.steps)
     }
 
+    /// One step split by category, priced by the model that served it.
+    public func breakdown(of step: UsageStep) -> TokenBreakdown {
+        TokenBreakdown(usage: step.usage, pricing: pricing(forModelID: step.modelID))
+    }
+
     private func breakdown(of steps: [UsageStep]) -> TokenBreakdown {
         TokenBreakdown(
             combining: steps.map {
