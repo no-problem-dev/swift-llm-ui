@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-08-17
+
 ### Added
 
 - **What a session cost, not just what it did.** `UsageLedger` keeps three levels — session, turn,
