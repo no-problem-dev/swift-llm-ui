@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-08-24
+
 ### Added
 
 - `AgentTraceLog.Entry.deltas` keeps the streamed pieces in the order they arrived. `summary` is
