@@ -222,7 +222,7 @@
                     }
                 }
 
-                Text(entry.summary)
+                Text(AgentTraceLog.markingEdgeWhitespace(entry.summary))
                     .font(.caption.monospaced())
                     .foregroundStyle(entry.kind == .failure ? Color.red : Color.primary)
                     .lineLimit(3)
@@ -252,13 +252,29 @@
         public var body: some View {
             List {
                 Section {
-                    Text(entry.summary)
+                    Text(AgentTraceLog.markingEdgeWhitespace(entry.summary))
                         .font(.callout.monospaced())
                         .textSelection(.enabled)
                     LabeledContent(
                         "At",
                         value: entry.at.formatted(date: .omitted, time: .standard)
                     )
+                }
+
+                if entry.deltas.count > 1 {
+                    Section {
+                        ForEach(Array(entry.deltas.enumerated()), id: \.offset) { index, delta in
+                            LabeledContent("\(index + 1)") {
+                                Text(AgentTraceLog.markingEdgeWhitespace(delta))
+                                    .font(.caption.monospaced())
+                                    .textSelection(.enabled)
+                            }
+                        }
+                    } header: {
+                        Text("Deltas (\(entry.deltas.count))")
+                    } footer: {
+                        Text("How the pieces arrived. ␊ is a newline, ␠ a space, at either end.")
+                    }
                 }
 
                 if let detail = entry.detail, !detail.isEmpty {
@@ -289,11 +305,7 @@
                     if let onCopy {
                         ToolbarItem(placement: .primaryAction) {
                             Button("Copy") {
-                                onCopy(
-                                    [entry.summary, entry.detail, entry.result]
-                                        .compactMap(\.self)
-                                        .joined(separator: "\n")
-                                )
+                                onCopy(AgentTraceLog.describing(entry))
                             }
                         }
                     }

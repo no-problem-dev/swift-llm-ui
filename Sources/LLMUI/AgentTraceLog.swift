@@ -58,6 +58,14 @@ public final class AgentTraceLog {
         /// together instead of making someone match up two rows by eye.
         public let result: String?
 
+        /// How the streamed pieces arrived, in order, when this entry was merged from deltas.
+        ///
+        /// ``summary`` is those pieces joined, which is what you want to read — but the joining
+        /// hides where one delta ended and the next began. That matters when the question is
+        /// *what did the model actually send*: a trailing newline of its own, or a chunk boundary
+        /// that only looks like one. Empty for an entry appended in one piece.
+        public let deltas: [String]
+
         public init(
             id: UUID = UUID(),
             at: Date = Date(),
@@ -65,7 +73,8 @@ public final class AgentTraceLog {
             runID: UUID? = nil,
             summary: String,
             detail: String? = nil,
-            result: String? = nil
+            result: String? = nil,
+            deltas: [String] = []
         ) {
             self.id = id
             self.at = at
@@ -74,6 +83,7 @@ public final class AgentTraceLog {
             self.summary = summary
             self.detail = detail
             self.result = result
+            self.deltas = deltas
         }
     }
 
@@ -243,7 +253,10 @@ public final class AgentTraceLog {
     /// sentence into dozens of rows, so the deltas are joined back into the entry they belong to.
     public func appendMergingSummary(_ kind: Kind, _ delta: String) {
         guard let last = entries.last, last.kind == kind, last.runID == currentRunID else {
-            append(kind, delta)
+            entries.append(
+                Entry(kind: kind, runID: currentRunID, summary: delta, deltas: [delta])
+            )
+            prune()
             return
         }
         entries[entries.count - 1] = Entry(
@@ -253,7 +266,8 @@ public final class AgentTraceLog {
             runID: last.runID,
             summary: last.summary + delta,
             detail: last.detail,
-            result: last.result
+            result: last.result,
+            deltas: last.deltas + [delta]
         )
     }
 
@@ -353,7 +367,7 @@ public final class AgentTraceLog {
 
     /// The whole log as text, for putting on the pasteboard.
     public func transcript() -> String {
-        entries.map(Self.describe).joined(separator: "\n\n")
+        entries.map(Self.describing).joined(separator: "\n\n")
     }
 
     /// One run as text, for putting on the pasteboard.
@@ -361,11 +375,19 @@ public final class AgentTraceLog {
     /// A run is the unit worth pasting into a bug report; the whole session is usually too much.
     public func transcript(of run: Run) -> String {
         let head = "=== \(run.label ?? "Run \(run.index)") ==="
-        return ([head] + run.entries.map(Self.describe)).joined(separator: "\n\n")
+        return ([head] + run.entries.map(Self.describing)).joined(separator: "\n\n")
     }
 
-    private static func describe(_ entry: Entry) -> String {
-        var text = "[\(timeFormatter.string(from: entry.at))] \(entry.kind.rawValue)\n\(entry.summary)"
+    /// One entry as text, with the whitespace at either end spelled out.
+    ///
+    /// Public so a Copy button hands over exactly what a transcript would show, rather than the
+    /// raw fields — the raw form is what hid a trailing newline in the first place.
+    public static func describing(_ entry: Entry) -> String {
+        var text = "[\(timeFormatter.string(from: entry.at))] \(entry.kind.rawValue)\n"
+            + markingEdgeWhitespace(entry.summary)
+        if entry.deltas.count > 1 {
+            text += "\ndeltas: " + entry.deltas.map(markingEdgeWhitespace).joined(separator: "|")
+        }
         if let detail = entry.detail, !detail.isEmpty {
             text += "\n" + detail
         }
@@ -373,6 +395,44 @@ public final class AgentTraceLog {
             text += "\n→ " + result
         }
         return text
+    }
+
+    /// Spells out the whitespace at either end so a transcript cannot hide it.
+    ///
+    /// Entries are joined with a blank line, so a summary that ends in its own newline reads
+    /// exactly like the separator — the one case where you most need to tell them apart is the
+    /// one the plain text cannot show. Only the edges are marked; whitespace in the middle is
+    /// ordinary prose and stays readable.
+    static func markingEdgeWhitespace(_ text: String) -> String {
+        guard !text.isEmpty else {
+            return "␀"
+        }
+        let body = text.unicodeScalars
+        let isSpace: (Unicode.Scalar) -> Bool = { $0 == " " || $0 == "\t" || $0 == "\n" || $0 == "\r" }
+        let leading = body.prefix(while: isSpace)
+        guard leading.count < body.count else {
+            // All whitespace: the leading run already covers it, so marking a trailing run
+            // as well would double every character.
+            return mark(leading)
+        }
+        let trailing = body.reversed().prefix(while: isSpace).reversed()
+        guard !leading.isEmpty || !trailing.isEmpty else {
+            return text
+        }
+        let middle = body.dropFirst(leading.count).dropLast(trailing.count)
+        return mark(leading) + String(String.UnicodeScalarView(middle)) + mark(trailing)
+    }
+
+    private static func mark(_ scalars: some Sequence<Unicode.Scalar>) -> String {
+        scalars.map { scalar in
+            switch scalar {
+            case "\n": "␊"
+            case "\r": "␍"
+            case "\t": "␉"
+            default: "␠"
+            }
+        }
+        .joined()
     }
 
     /// Spells out a step's token counts, leaving out the ones the provider did not report.

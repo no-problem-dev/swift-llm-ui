@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `AgentTraceLog.Entry.deltas` keeps the streamed pieces in the order they arrived. `summary` is
+  those pieces joined, which is what you want to read, but joining hides where one delta ended and
+  the next began — and that boundary is the evidence when the question is whether a model wrote a
+  trailing newline itself or a chunk split merely looks like one.
+- `AgentTraceLog.describing(_:)` is now public, so a Copy button hands over what a transcript
+  shows rather than the raw fields. The raw form is what hid a trailing newline to begin with.
+- The entry detail screen lists the deltas one per row when there is more than one.
+
+### Fixed
+
+- A transcript could not show whitespace at either end of an entry. Entries are joined with a
+  blank line, so a summary ending in its own newline read exactly like the separator — the one
+  case where telling them apart matters most was the one the text could not express. Both ends are
+  now spelled out (`␊`, `␍`, `␉`, `␠`, and `␀` for empty) in the transcript, the list row, and the
+  detail screen. Whitespace in the middle is left alone, since that is ordinary prose.
+- `scripts/compute-next-version.sh` counted a defaulted parameter as a removal, which would have
+  made this release 0.6.0 for a change no caller has to touch. Ported from swift-http-transport
+  2.2.1, with its regression test.
+
 ## [0.5.0] - 2026-08-17
 
 ### Added

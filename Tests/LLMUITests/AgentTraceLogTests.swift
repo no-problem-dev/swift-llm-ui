@@ -131,6 +131,83 @@ struct AgentTraceLogTests {
         #expect(transcript.contains("tool"))
     }
 
+    @Test("A trailing newline in the text is visible in the transcript")
+    func trailingNewlineIsVisible() {
+        let log = AgentTraceLog()
+        log.appendMergingSummary(.text, "Ready.\n\n")
+
+        let transcript = log.transcript()
+
+        #expect(transcript.contains("Ready.␊␊"))
+    }
+
+    @Test("Whitespace inside the text is left alone")
+    func innerWhitespaceIsUntouched() {
+        #expect(AgentTraceLog.markingEdgeWhitespace("one\ntwo") == "one\ntwo")
+    }
+
+    @Test("Leading whitespace is marked too")
+    func leadingWhitespaceIsVisible() {
+        #expect(AgentTraceLog.markingEdgeWhitespace("\n hi") == "␊␠hi")
+    }
+
+    @Test("An all-whitespace delta is not mistaken for nothing")
+    func whitespaceOnlyIsVisible() {
+        #expect(AgentTraceLog.markingEdgeWhitespace("\n\n") == "␊␊")
+    }
+
+    @Test("An empty summary says so")
+    func emptyIsVisible() {
+        #expect(AgentTraceLog.markingEdgeWhitespace("") == "␀")
+    }
+
+    @Test("The transcript spells out how the deltas arrived")
+    func transcriptCarriesDeltaBoundaries() {
+        let log = AgentTraceLog()
+        log.appendMergingSummary(.text, "Ready.")
+        log.appendMergingSummary(.text, "\n\n")
+
+        let transcript = log.transcript()
+
+        #expect(transcript.contains("deltas: Ready.|␊␊"))
+    }
+
+    @Test("A single delta needs no boundary line")
+    func oneDeltaHasNoBoundaryLine() {
+        let log = AgentTraceLog()
+        log.appendMergingSummary(.text, "Ready.")
+
+        #expect(!log.transcript().contains("deltas:"))
+    }
+
+    @Test("Merged deltas are kept in order")
+    func deltasAreKeptInOrder() {
+        let log = AgentTraceLog()
+        log.appendMergingSummary(.text, "a")
+        log.appendMergingSummary(.text, "b")
+        log.appendMergingSummary(.text, "c")
+
+        #expect(log.entries.last?.deltas == ["a", "b", "c"])
+        #expect(log.entries.last?.summary == "abc")
+    }
+
+    @Test("A delta that starts a new entry still records itself")
+    func firstDeltaIsRecorded() {
+        let log = AgentTraceLog()
+        log.append(.tool, "search")
+        log.appendMergingSummary(.text, "hi")
+
+        #expect(log.entries.last?.deltas == ["hi"])
+    }
+
+    @Test("An entry appended in one piece has no deltas")
+    func plainAppendHasNoDeltas() {
+        let log = AgentTraceLog()
+        log.append(.text, "whole")
+
+        #expect(log.entries.last?.deltas.isEmpty == true)
+    }
+
     // MARK: - Runs
 
     @Test("Entries are grouped into the run they were recorded in")
